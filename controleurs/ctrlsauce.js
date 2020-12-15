@@ -1,5 +1,6 @@
 const { json } = require('body-parser');
 const sauce=require('../models/sauce');
+const like=require('../models/like')
 const fs=require('fs');
 
 
@@ -28,11 +29,13 @@ exports.createsauce=(req, res, next) => {/*definition du contenu de stuff(format
 
     exports.postsauce=(req, res, next) => {/*envoie d'une requete post */
     console.log(req.body);
-    delete req.body.id;
+    const saucedata=JSON.parse(req.body.sauce);
+    delete saucedata._id;
     const Sauce=new sauce({
-      ...req.body,
-      imageUrl:'${req.protocol}://${req.get("host")}/images/${req.file.filename}'
+      ...saucedata,
+      imageUrl:`${req.protocol}://${req.get("host")}/images/${req.file.filename}`
     });
+    console.log(Sauce);
     Sauce.save()
      .then(()=>res.status(201).json({message:'objet enregistrer'}))
      .catch(error=>res.status(400).json({error}));
@@ -47,18 +50,19 @@ exports.createsauce=(req, res, next) => {/*definition du contenu de stuff(format
         };
         
         exports.getsauce=(req,res,next)=>{/*parametre get */
-        sauce.findOne({id:req.params.id})
+        sauce.findOne({_id:req.params.id})
         .then(sauce=>res.status(200).json(sauce))
         .catch(error=>res.status(404).json({error}));
         };
         
-        exports.putsauce=(req,res,next)=>{/*parametre put */
+        exports.putsauce=(req,res,next)=>{/*parametre put (modif)*/
          const sauceObject=req.file?{
            ...JSON.parse(req.body.sauce),
-           imageUrl:'${req.protocol}://${req.get("host")}/images/${req.file.filename}'
+             imageUrl:`${req.protocol}://${req.get("host")}/images/${req.file.filename}`
          }:{...req.body};
-        sauce.updateOne({id:req.params.id},{...req.body,id:req.params.id})
-        .then(()=>res.status(200).json({message:'objet modifier'}))
+        sauce.updateOne({_id:req.params.id},{...sauceObject,_id:req.params.id})
+        .then(()=>res.status(200).json({message:'objet modifier'}),
+        )
         .catch(error=>res.status(400).json({error}));
         };
         
@@ -66,7 +70,7 @@ exports.createsauce=(req, res, next) => {/*definition du contenu de stuff(format
         sauce.findOne({_id:req.params.id})
         .then(sauce=>{
           const filename=sauce.imageUrl.split('/images/')[1];
-          fs.unlink('images/${filename',()=>{
+          fs.unlink(`images/${filename}`,()=>{
             sauce.deleteOne({id:req.params.id})
             .then(()=>res.status(200).json({message:'objet suprimer'}))
             .catch(error=>res.status(400).json({error}));
@@ -74,6 +78,87 @@ exports.createsauce=(req, res, next) => {/*definition du contenu de stuff(format
         })
          .catch(error=>res.status(500).json({error}));
         };
+
+
+       exports.like=(req,res,next)=>{
+       console.log(req.body);/*req contient userid et like like=1pour likes et like=-1pour dislike */
+       console.log(req.body.like);
+       const likedata=req.body;
+       console.log("verif:"+likedata);
+       delete likedata._id;
+       const LIKE=new like({
+         ...likedata
+       });
+       console.log(LIKE);
+       LIKE.save()
+        .then(()=>res.status(201).json({message:'objet enregistrer'}))
+        .catch(error=>res.status(400).json({error}));
+       
+     /* var usersLikes=req.body.usersLikes;
+      var like=req.body.likes;
+      var dislike=req.body.dislikes;
+
+       if(req.body.like=1){
+         console.log(req.body.like);
+         if(usersLikes=""){
+          usersLikes=req.body.userId;
+         }else{
+          usersLikes+=req.body.userId;
+         }
+       console.log(usersLikes);
+       if(like=""){
+         like=1;
+       }else{
+        like++;
+       }
+       console.log(like);
+       }else{
+         if(req.body.like=-1){
+           if(usersDisliked=""){
+            usersDisliked=req.body.userId;
+           }else{
+            usersDisliked+=req.body.userId;
+           }
+          console.log(usersDisliked);
+          if(dislike=""){
+            dislike=1;
+          }else{
+            dislike+=1;
+          }
+         };
+       };
+       sauce.updateOne({id:req.params.id},{...req.body,id:req.params.id})
+       .then(()=>res.status(200).json({message:'objet modifier'}))
+       .catch(error=>res.status(400).json({error}));*/
+       };
+
+
+
+
+
+
+        exports.addlike=(req,res,next)=>{
+          const sauceObject=req.file?{
+            ...JSON.parse(req.body.sauce),
+            likes:'${req.likes}+=1',
+            usersLikes:'${req.usersLikes}.add($user.email)'
+          }:{...req.body};
+         sauce.updateOne({id:req.params.id},{...req.body,id:req.params.id})
+         .then(()=>res.status(200).json({message:'objet modifier'}))
+         .catch(error=>res.status(400).json({error}));
+        };
+
+        exports.adddislike=(req,res,next)=>{
+          const sauceObject=req.file?{
+            ...JSON.parse(req.body.sauce),
+            dislikes:'${req.dislikes}+=1',
+            usersDisliked:'${req.usersDislikes}.add($user.email)'
+          }:{...req.body};
+         sauce.updateOne({id:req.params.id},{...req.body,id:req.params.id})
+         .then(()=>res.status(200).json({message:'objet modifier'}))
+         .catch(error=>res.status(400).json({error}));
+        };
+      
         
 
 

@@ -2,6 +2,9 @@ const user=require('../models/user');
 const jwt=require('jsonwebtoken');
 const bcrypt=require('bcrypt');
 
+
+
+
 exports.postsignup=(req,res,next)=>{/*route signup */
     console.log(req.body);
     bcrypt.hash(req.body.password,10)
@@ -13,11 +16,16 @@ exports.postsignup=(req,res,next)=>{/*route signup */
           });
           User.save()
           .then(()=>res.status(201).json({message:'utilisateur enregistrer'}))
-          .catch(error=>res.status(400).json({error}));
+          
+          .catch( error=>res.status(400).json({message:"identifiant"}))
+            
+
     })
    .catch(error=>res.status(500).json({error}));
   };
-  
+  /*identifiant déja utiliser 
+  throw new Error("identifiant déja utiliser")
+  */
   exports.postlogin=(req,res,next)=>{/*route login*/
    user.findOne({email:req.body.email})
    .then(user=>{

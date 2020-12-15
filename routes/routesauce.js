@@ -14,9 +14,13 @@ router.get('/',auth,saucectrl.getsauces);/*recup des sauces */
 
 router.get('/:id',auth,saucectrl.getsauce);/*parametre get */
 
-router.put('/:id',auth,multer,saucectrl.putsauce);/*parametre put */
+router.put('/:id',auth,multer,saucectrl.putsauce);/*parametre put (modif) */
 
 router.delete('/:id',auth,saucectrl.deletesauce);/*parametre delete */
+
+router.post('/:id/like',auth,saucectrl.like);
+
+
 
 
 
